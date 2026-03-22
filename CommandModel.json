@@ -1,0 +1,214 @@
+{
+  "$schema": "http://json-schema.org/draft-04/schema#",
+  "title": "CommandModel",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "Gets or sets the command name. This name is used as the command identifier in the CLI. For root commands, this name may be used as the application name."
+    },
+    "description": {
+      "type": "string",
+      "description": "Gets or sets the command description. This text appears in help screens when users request help for this command."
+    },
+    "options": {
+      "type": "array",
+      "description": "Gets or sets the options specific to this command. Options are named parameters that can be specified with a prefix (e.g., --verbose, -v).",
+      "items": {
+        "$ref": "#/definitions/OptionModel"
+      }
+    },
+    "arguments": {
+      "type": "array",
+      "description": "Gets or sets the positional arguments of this command. Arguments are ordered parameters that don't have a name prefix.",
+      "items": {
+        "$ref": "#/definitions/ArgumentModel"
+      }
+    },
+    "commands": {
+      "type": "array",
+      "description": "Gets or sets the nested subcommands. Subcommands allow creating hierarchical command structures (e.g., git commit, git push).",
+      "items": {
+        "$ref": "#"
+      }
+    },
+    "validators": {
+      "type": "array",
+      "description": "Gets or sets the command-level validators. Validators are C# code snippets that run after all options and arguments are parsed.",
+      "items": {
+        "$ref": "#/definitions/ValidatorModel"
+      }
+    },
+    "extensions": {
+      "type": "array",
+      "description": "Gets or sets the command-level extensions. Extensions are custom methods that can be called on the command instance.",
+      "items": {
+        "$ref": "#/definitions/ExtensionModel"
+      }
+    }
+  },
+  "definitions": {
+    "OptionModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Gets or sets the option name. This is the primary identifier used to generate the long form (e.g., --name)."
+        },
+        "type": {
+          "type": "string",
+          "description": "Gets or sets the .NET type name for the option value. Supported built-in types: string, bool, int, long, double, float, decimal, DateTime, FileInfo, DirectoryInfo, string[], int[]. Custom types will be wrapped in ComplexOption<T>."
+        },
+        "description": {
+          "type": "string",
+          "description": "Gets or sets the option description. This text appears in help screens when users request help for this option."
+        },
+        "default": {
+          "type": "string",
+          "description": "Gets or sets the default value for the option. The value is parsed according to the specified type."
+        },
+        "required": {
+          "type": "boolean",
+          "description": "Gets or sets whether this option is required. Required options must be provided on the command line."
+        },
+        "aliases": {
+          "type": "array",
+          "description": "Gets or sets the alternative names/short forms for this option. Aliases provide alternative ways to specify the same option.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "validators": {
+          "type": "array",
+          "description": "Gets or sets the option-level validators. Validators are C# code snippets that validate the option value after parsing.",
+          "items": {
+            "$ref": "#/definitions/ValidatorModel"
+          }
+        },
+        "recursive": {
+          "type": "boolean",
+          "description": "Gets or sets whether this option should recursively process directories. When true, directory paths are processed recursively."
+        },
+        "allowMultipleArgumentsPerToken": {
+          "type": "boolean",
+          "description": "Gets or sets whether multiple arguments can be specified per token. When true, values can be comma-separated or space-separated within a single token."
+        },
+        "acceptExistingOnly": {
+          "type": "boolean",
+          "description": "Gets or sets whether the option value must point to an existing file or directory. When true, the path must exist on the filesystem."
+        },
+        "acceptLegalFileNamesOnly": {
+          "type": "boolean",
+          "description": "Gets or sets whether the option value must be a legal file name. When true, the value must not contain invalid characters for file names."
+        },
+        "acceptOnlyFromAmong": {
+          "type": "array",
+          "description": "Gets or sets the list of allowed values for this option. The option value must be one of the strings in this list.",
+          "items": {
+            "type": "string"
+          }
+        },
+        "arity": {
+          "type": "string",
+          "description": "Gets or sets the arity (number of values expected) for this option.\n\nValid values:\n  • \"1\" - Exactly one value (default)\n  • \"?\" - Zero or one value\n  • \"*\" - Zero or more values\n  • \"+\" - One or more values\n  • \"0..1\" - Zero or one value\n  • \"1..*\" - One or more values\n  • \"0..*\" - Zero or more values\n  • \"2\" - Exactly two values\n  • \"2..5\" - Between 2 and 5 values\n  • \"2..*\" - Two or more values\n\nExamples:\n  arity: \"1\"        # Exactly one value\n  arity: \"?\"        # Optional, at most one\n  arity: \"*\"        # Any number, including zero\n  arity: \"+\"        # At least one\n  arity: \"2..5\"     # Between 2 and 5 values\n  arity: \"0..1\"     # Zero or one\n  arity: \"1..*\"     # One or more\n  arity: \"0..*\"     # Zero or more"
+        },
+        "extensions": {
+          "type": "array",
+          "description": "Gets or sets the option-level extensions. Extensions are custom methods that can be called on the option instance.",
+          "items": {
+            "$ref": "#/definitions/ExtensionModel"
+          }
+        }
+      }
+    },
+    "ValidatorModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "The C# code that implements the validation. The code should use a parameter named 'result' of the appropriate type. To report an error, set result.ErrorMessage."
+        }
+      }
+    },
+    "ExtensionModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Gets or sets the name of the extension method to call. The method must be an extension method defined in a static class that is in scope."
+        },
+        "parameters": {
+          "type": "array",
+          "description": "Gets or sets the parameters to pass to the extension method. Parameters are written as literals in the generated code.",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "ArgumentModel": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Gets or sets the argument name. This is used as the identifier in help text and generated code."
+        },
+        "type": {
+          "type": "string",
+          "description": "Gets or sets the .NET type name for the argument value. Supported built-in types: string, bool, int, long, double, float, decimal, DateTime, FileInfo, DirectoryInfo, string[], int[]. Custom types will be wrapped in ComplexArgument<T>."
+        },
+        "description": {
+          "type": "string",
+          "description": "Gets or sets the argument description. This text appears in help screens."
+        },
+        "default": {
+          "type": "string",
+          "description": "Gets or sets the default value for the argument. The value is parsed according to the specified type. Arguments with default values become optional."
+        },
+        "arity": {
+          "type": "string",
+          "description": "Gets or sets the arity (number of values expected) for this argument.\n\nValid values:\n  • \"1\" - Exactly one value (default)\n  • \"?\" - Zero or one value\n  • \"*\" - Zero or more values\n  • \"+\" - One or more values\n  • \"0..1\" - Zero or one value\n  • \"1..*\" - One or more values\n  • \"0..*\" - Zero or more values\n  • \"2\" - Exactly two values\n  • \"2..5\" - Between 2 and 5 values\n  • \"2..*\" - Two or more values\n\nExamples:\n  arity: \"1\"        # Exactly one value\n  arity: \"?\"        # Optional, at most one\n  arity: \"*\"        # Any number, including zero\n  arity: \"+\"        # At least one\n  arity: \"2..5\"     # Between 2 and 5 values\n  arity: \"0..1\"     # Zero or one\n  arity: \"1..*\"     # One or more\n  arity: \"0..*\"     # Zero or more"
+        },
+        "validators": {
+          "type": "array",
+          "description": "Gets or sets the argument-level validators. Validators are C# code snippets that validate the argument value after parsing.",
+          "items": {
+            "$ref": "#/definitions/ValidatorModel"
+          }
+        },
+        "acceptExistingOnly": {
+          "type": "boolean",
+          "description": "For file/directory arguments: only accept paths that already exist."
+        },
+        "acceptLegalFileNamesOnly": {
+          "type": "boolean",
+          "description": "For file/directory arguments: only accept valid file/directory names (no invalid characters, etc.)."
+        },
+        "acceptOnlyFromAmong": {
+          "type": "array",
+          "description": "For arguments that should only accept values from a predefined set (e.g., \"red\", \"green\", \"blue\").",
+          "items": {
+            "type": "string"
+          }
+        },
+        "allowMultipleArgumentsPerToken": {
+          "type": "boolean",
+          "description": "For arguments that can accept multiple values in a single token (e.g., \"arg1,arg2,arg3\")."
+        },
+        "extensions": {
+          "type": "array",
+          "description": "Gets or sets the argument-level extensions. Extensions are custom methods that can be called on the argument instance.",
+          "items": {
+            "$ref": "#/definitions/ExtensionModel"
+          }
+        }
+      }
+    }
+  }
+}
+
